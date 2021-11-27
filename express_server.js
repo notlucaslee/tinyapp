@@ -13,6 +13,10 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -28,7 +32,8 @@ app.get("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
-})
+});
+
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: 'Hello' };
   res.render("hello_world", templateVars);
