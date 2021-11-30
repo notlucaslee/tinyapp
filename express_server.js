@@ -29,8 +29,8 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
+app.get("/register", (req, res) => {
+  res.render("register_page");
 });
 
 app.get("/urls/new", (req, res) => {
