@@ -24,18 +24,64 @@ const generateRandomString = function() {
   return randString;
 };
 
+const isEmailAvailable = function(newEmail) {
+  for (let user in users) {
+    if (users[user]["email"] === newEmail) {
+      return false;
+    }
+  }
+  return true;
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
+};
+
+const users = {
+  "123456": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "987654": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
 };
 
 app.get("/register", (req, res) => {
   res.render("register_page");
 });
 
+app.post("/register", (req, res) => {
+
+  if (!req.body.email || !req.body.password) {
+    res.status(400).json({
+      status: "unsuccessful",
+      message: "email and password must not be blank"
+    });
+  }
+
+  if (!isEmailAvailable(req.body.email)) {
+    res.status(400).json({
+      status: "unsuccessful",
+      message: "email already taken"
+    });
+  }
+  const id = generateRandomString();
+  users[id] = {
+    id: id,
+    email: req.body.email,
+    password: req.body.password
+  };
+  res.cookie("userID", id);
+  res.redirect("/urls");
+});
+
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
-  res.render("urls_new", templateVars);
+  res.render("urls_new", { userID: req.cookies["userID"] });
 });
 
 app.get("/urls.json", (req, res) => {
@@ -53,7 +99,7 @@ app.get("/urls", (req, res) => {
   const templateVars = {
     title: 'My URLs',
     urls: urlDatabase,
-    username: req.cookies["username"],
+    userID: req.cookies["userID"],
   };
   res.render("urls_index", templateVars);
 });
@@ -62,7 +108,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"]
+    userID: req.cookies["userID"]
   };
   res.render("urls_show", templateVars);
 });
@@ -89,7 +135,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("userID");
   res.redirect("/urls");
 });
 
