@@ -80,6 +80,10 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
+app.get("/login", (req, res) => {
+  res.render("login_page");
+})
+
 app.get("/urls/new", (req, res) => {
   res.render("urls_new", { userID: req.cookies["userID"] });
 });
@@ -91,7 +95,6 @@ app.get("/urls.json", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortLink = generateRandomString();
   urlDatabase[shortLink] = req.body.longURL;
-  console.log(urlDatabase);
   res.redirect("/urls");
 });
 
@@ -120,7 +123,6 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL;
-  console.log(urlDatabase);
   res.redirect("/urls");
 });
 
@@ -130,8 +132,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+  
 });
 
 app.post("/logout", (req, res) => {
