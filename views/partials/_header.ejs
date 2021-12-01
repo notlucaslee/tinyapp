@@ -9,6 +9,20 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
+      <% if (!userID) { %>
+      <div class="navbar-nav" style="display: flex; justify-content: flex-end">
+        <nav>
+        <a class="nav-item nav-link" href="/login">Log in</a>
+        <a class="nav-item nav-link" href="/register">Register</a>
+      </nav>
+      </div>
+      <% } else { %>
+        <div class="navbar-nav" style="display: flex; justify-content: flex-end">
+        <form class="form-inline" action="/logout" method="POST">
+          <div class="form-group mb-2"></div>
+          <button type="submit" class="btn btn-primary">Log out</button>
+          </form>
+          <% } %>
     </div>
   </nav>
 </header> 

@@ -33,6 +33,15 @@ const isEmailAvailable = function(newEmail) {
   return true;
 };
 
+const logUserIn = function(email, password) {
+  for (let user in users) {
+    if (users[user]["email"] === email && users[user]["password"] === password) {
+      return users[user]
+    }
+  }
+  return null;
+}
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -40,19 +49,19 @@ const urlDatabase = {
 
 const users = {
   "123456": {
-    id: "userRandomID",
+    id: "123456",
     email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
   "987654": {
-    id: "user2RandomID",
+    id: "987654",
     email: "user2@example.com",
     password: "dishwasher-funk"
   }
 };
 
 app.get("/register", (req, res) => {
-  res.render("register_page");
+  res.render("register_page", { userID: req.cookies["userID"] });
 });
 
 app.post("/register", (req, res) => {
@@ -81,7 +90,7 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  res.render("login_page");
+  res.render("login_page", { userID: req.cookies["userID"] });
 })
 
 app.get("/urls/new", (req, res) => {
@@ -132,7 +141,15 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  
+  let user = logUserIn(req.body.email, req.body.password)
+  if (!user) {
+    res.status(403).json({
+      status: "unsuccessful",
+      message: "invalid credentials"
+    });
+  }
+  res.cookie('userID', user.id)
+  res.redirect("/urls")
 });
 
 app.post("/logout", (req, res) => {
