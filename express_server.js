@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080
 
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -35,7 +36,7 @@ const isEmailAvailable = function(newEmail) {
 
 const logUserIn = function(email, password) {
   for (let user in users) {
-    if (users[user]["email"] === email && users[user]["password"] === password) {
+    if (users[user]["email"] === email && bcrypt.compareSync(password, users[user]["password"])) {
       return users[user];
     }
   }
@@ -59,16 +60,7 @@ const urlsForUser = function(id) {
 };
 
 const users = {
-  "123456": {
-    id: "123456",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  "987654": {
-    id: "987654",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
+
 };
 
 app.get("/register", (req, res) => {
@@ -90,12 +82,14 @@ app.post("/register", (req, res) => {
       message: "email already taken"
     });
   }
+  const hashedPass = bcrypt.hashSync(req.body.password, 10);
   const id = generateRandomString();
   users[id] = {
     id: id,
     email: req.body.email,
-    password: req.body.password
+    password: hashedPass
   };
+  console.log(users)
   res.cookie("userID", id);
   res.redirect("/urls");
 });
@@ -178,8 +172,9 @@ app.post("/login", (req, res) => {
       status: "unsuccessful",
       message: "invalid credentials"
     });
-  }
+  } else {
   res.cookie('userID', user.id);
+  }
   res.redirect("/urls");
 });
 
