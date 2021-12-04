@@ -3,19 +3,19 @@ const app = express();
 const PORT = 8080; // default port 8080
 
 const bodyParser = require("body-parser");
-const cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const {
   generateRandomString,
   isEmailAvailable,
   logUserIn,
   urlsForUser
-} = require('./helpers')
+} = require('./helpers');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
- name: 'session',
-keys: ['key1', 'key2']
+  name: 'session',
+  keys: ['key1', 'key2']
 }));
 app.set("view engine", "ejs");
 
@@ -52,8 +52,26 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/login", (req, res) => {
+  let user = logUserIn(req.body.email, req.body.password, users);
+  if (!user) {
+    res.status(403).json({
+      status: "unsuccessful",
+      message: "invalid credentials"
+    });
+  } else {
+    req.session.user_id = user.id;
+  }
+  res.redirect("/urls");
+});
+
+app.post("/logout", (req, res) => {
+  req.session = null;
+  res.redirect("/urls");
+});
+
 app.get("/login", (req, res) => {
-  res.render("login_page", { userID: req.session.user_id })
+  res.render("login_page", { userID: req.session.user_id });
 });
 
 app.get("/urls/new", (req, res) => {
@@ -107,7 +125,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.id]["userID"]) {
-  urlDatabase[req.params.id] = {longURL: req.body.longURL, userID: req.session.user_id}
+    urlDatabase[req.params.id] = {longURL: req.body.longURL, userID: req.session.user_id};
   } else {
     console.log('permission denied');
   }
@@ -120,24 +138,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   } else {
     console.log("permission denied");
   }
-  res.redirect("/urls");
-});
-
-app.post("/login", (req, res) => {
-  let user = logUserIn(req.body.email, req.body.password, users);
-  if (!user) {
-    res.status(403).json({
-      status: "unsuccessful",
-      message: "invalid credentials"
-    });
-  } else {
-    req.session.user_id = user.id;
-  }
-  res.redirect("/urls");
-});
-
-app.post("/logout", (req, res) => {
-  req.session = null;
   res.redirect("/urls");
 });
 

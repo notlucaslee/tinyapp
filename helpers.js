@@ -46,5 +46,6 @@ module.exports = {
   generateRandomString,
   isEmailAvailable,
   logUserIn,
-  urlsForUser
+  urlsForUser,
+  bcrypt
 };
