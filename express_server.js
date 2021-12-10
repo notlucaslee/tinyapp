@@ -5,6 +5,8 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+
+//Accessing helper methods
 const {
   generateRandomString,
   isEmailAvailable,
@@ -19,11 +21,16 @@ app.use(cookieSession({
 }));
 app.set("view engine", "ejs");
 
+//Initializing db objects, using global variables in place of an actual sql db
 const urlDatabase = {};
 const users = {};
 
+//Initializing user variable because undefined vars don't play nice when accessed by ejs
+//Will get overwritten by POST request logic from login or register routes 
+let user = {email: 's'};
+
 app.get("/register", (req, res) => {
-  res.render("register_page", { userID: req.session.user_id });
+  res.render("register_page", { userID: req.session.user_id, email: user.email });
 });
 
 app.post("/register", (req, res) => {
@@ -44,16 +51,17 @@ app.post("/register", (req, res) => {
   const hashedPass = bcrypt.hashSync(req.body.password, 10);
   const id = generateRandomString();
   users[id] = {
-    id: id,
+    id,
     email: req.body.email,
     password: hashedPass
   };
+  user = logUserIn(req.body.email, req.body.password, users);
   req.session.user_id = id;
   res.redirect("/urls");
 });
 
 app.post("/login", (req, res) => {
-  let user = logUserIn(req.body.email, req.body.password, users);
+  user = logUserIn(req.body.email, req.body.password, users);
   if (!user) {
     res.status(403).json({
       status: "unsuccessful",
@@ -71,14 +79,14 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  res.render("login_page", { userID: req.session.user_id });
+  res.render("login_page", { userID: req.session.user_id, email: user.email });
 });
 
 app.get("/urls/new", (req, res) => {
   if (req.session.user_id) {
-    res.render("urls_new", { userID: req.session.user_id });
+    res.render("urls_new", { userID: req.session.user_id, email: user.email });
   } else {
-    res.render("no_user", { userID: req.session.user_id });
+    res.render("no_user", { userID: req.session.user_id, email: user.email });
   }
 });
 
@@ -97,13 +105,14 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
-    res.render("no_user", { userID: req.session.user_id });
+    res.render("no_user", { userID: req.session.user_id, email: user.email });
   } else {
     let urlObject = urlsForUser(req.session.user_id, urlDatabase);
     const templateVars = {
       title: 'My URLs',
       urls: urlObject,
       userID: req.session.user_id,
+      email: user.email
     };
     res.render("urls_index", templateVars);
   }
@@ -113,7 +122,8 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL]["longURL"],
-    userID: req.session.user_id
+    userID: req.session.user_id,
+    email: user.email
   };
   res.render("urls_show", templateVars);
 });
